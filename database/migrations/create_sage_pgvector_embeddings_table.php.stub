@@ -1,0 +1,34 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('sage_embeddings', function (Blueprint $table) {
+            $table->id();
+            $table->text('content');
+            $table->string('source')->nullable();
+
+            // Ukuran vektor tergantung pada model embedding Anda.
+            // Gemini (models/embedding-001) menghasilkan 768 dimensi.
+            $table->vector('embedding', 768);
+
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('sage_embeddings');
+    }
+};
