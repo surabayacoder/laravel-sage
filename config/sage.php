@@ -20,6 +20,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Prompts
+    |--------------------------------------------------------------------------
+    |
+    | Template prompt yang digunakan untuk bertanya ke Gemini.
+    | Placeholder {context} dan {question} akan digantikan dengan data asli.
+    |
+    */
+    'prompts' => [
+        'answer' => "Jawab pertanyaan berikut hanya berdasarkan konteks yang diberikan.\n\nKonteks:\n{context}\n\nPertanyaan: {question}\n\nJawaban:",
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Konfigurasi Sumber Data untuk Indexing
     |--------------------------------------------------------------------------
     */

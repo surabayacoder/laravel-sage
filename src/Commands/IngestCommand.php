@@ -2,11 +2,12 @@
 
 namespace Surabayacoder\Sage\Commands;
 
-use Gemini;
+use Gemini\Contracts\ClientContract;
 use Spatie\PdfToText\Pdf;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use League\CommonMark\CommonMarkConverter;
+use Surabayacoder\Sage\Services\TextSplitter;
 use Surabayacoder\Sage\Contracts\VectorStore;
 
 class IngestCommand extends Command
@@ -15,7 +16,7 @@ class IngestCommand extends Command
 
     protected $description = 'Ingest documents into the vector store.';
 
-    public function handle(VectorStore $vectorStore)
+    public function handle(VectorStore $vectorStore, ClientContract $client)
     {
         $this->info('Starting ingestion process...');
 
@@ -60,9 +61,7 @@ class IngestCommand extends Command
                 continue;
             }
 
-            $chunks = str_split($text, 1500);
-
-            $client = Gemini::client($apiKey);
+            $chunks = TextSplitter::split($text);
 
             $model = $client->embeddingModel($embeddingModel);
 

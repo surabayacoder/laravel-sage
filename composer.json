@@ -15,9 +15,19 @@
         "spatie/pdf-to-text": "^1.52",
         "google-gemini-php/client": "^2.0"
     },
+    "require-dev": {
+        "orchestra/testbench": "^10.0",
+        "phpunit/phpunit": "^11.0",
+        "mockery/mockery": "^1.6"
+    },
     "autoload": {
         "psr-4": {
             "Surabayacoder\\Sage\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Surabayacoder\\Sage\\Tests\\": "tests/"
         }
     },
     "extra": {
@@ -31,5 +41,10 @@
         }
     },
     "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    }
 }

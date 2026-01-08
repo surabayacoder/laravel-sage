@@ -16,8 +16,15 @@ class PgvectorStore implements VectorStore
 
     public function save(array $vectors): void
     {
-        // Hapus data lama sebelum memasukkan yang baru
-        DB::table($this->table)->truncate();
+        // Ambil daftar source unik dari vectors baru
+        $sources = array_unique(array_column($vectors, 'source'));
+
+        if (empty($sources)) {
+            return;
+        }
+
+        // Hapus data lama yang punya source sama
+        DB::table($this->table)->whereIn('source', $sources)->delete();
 
         // Format data untuk bulk insert
         $dataToInsert = array_map(function ($item) {
