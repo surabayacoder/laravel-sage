@@ -4,6 +4,7 @@ namespace Surabayacoder\Sage\Drivers;
 
 use Illuminate\Support\Facades\DB;
 use Surabayacoder\Sage\Contracts\VectorStore;
+use Surabayacoder\Sage\Support\VectorHelper;
 
 class MySqlVectorStore implements VectorStore
 {
@@ -16,7 +17,15 @@ class MySqlVectorStore implements VectorStore
 
     public function save(array $vectors): void
     {
-        DB::table($this->table)->truncate();
+        // Ambil daftar source unik dari input data baru
+        $sources = array_unique(array_column($vectors, 'source'));
+
+        if (empty($sources)) {
+            return;
+        }
+
+        // Hapus data lama yang memiliki source yang sama (Upsert Logic)
+        DB::table($this->table)->whereIn('source', $sources)->delete();
 
         $dataToInsert = array_map(function ($item) {
             return [
@@ -43,39 +52,12 @@ class MySqlVectorStore implements VectorStore
             $similarities[] = [
                 'content' => $item->content,
                 'source' => $item->source,
-                'similarity' => $this->cosineSimilarity($queryVector, $dbEmbedding),
+                'similarity' => VectorHelper::cosineSimilarity($queryVector, $dbEmbedding),
             ];
         }
 
         usort($similarities, fn($a, $b) => $b['similarity'] <=> $a['similarity']);
 
         return array_slice($similarities, 0, $limit);
-    }
-
-    private function cosineSimilarity(array $vecA, array $vecB): float
-    {
-        $dotProduct = 0;
-        $magA = 0;
-        $magB = 0;
-        $count = count($vecA);
-
-        if ($count === 0 || $count !== count($vecB)) {
-            return 0;
-        }
-
-        for ($i = 0; $i < $count; $i++) {
-            $dotProduct += $vecA[$i] * $vecB[$i];
-            $magA += $vecA[$i] * $vecA[$i];
-            $magB += $vecB[$i] * $vecB[$i];
-        }
-
-        $magA = sqrt($magA);
-        $magB = sqrt($magB);
-
-        if ($magA == 0 || $magB == 0) {
-            return 0;
-        }
-
-        return $dotProduct / ($magA * $magB);
     }
 }

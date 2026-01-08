@@ -17,6 +17,13 @@ class SageServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../config/sage.php', 'sage');
 
+        // Daftarkan Gemini Client ke container
+        $this->app->singleton(\Gemini\Contracts\ClientContract::class, function ($app) {
+            $apiKey = $app['config']['sage.api_key'];
+
+            return \Gemini::client($apiKey);
+        });
+
         // Daftarkan implementasi VectorStore ke container
         $this->app->singleton(VectorStore::class, function ($app) {
             $config = $app['config']['sage'];
@@ -35,6 +42,7 @@ class SageServiceProvider extends ServiceProvider
         $this->app->singleton(RagService::class, function ($app) {
             return new RagService(
                 $app->make(VectorStore::class),
+                $app->make(\Gemini\Contracts\ClientContract::class),
                 $app['config']['sage']
             );
         });

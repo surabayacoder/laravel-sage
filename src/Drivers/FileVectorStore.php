@@ -4,6 +4,7 @@ namespace Surabayacoder\Sage\Drivers;
 
 use Illuminate\Support\Facades\Storage;
 use Surabayacoder\Sage\Contracts\VectorStore;
+use Surabayacoder\Sage\Support\VectorHelper;
 
 class FileVectorStore implements VectorStore
 {
@@ -16,7 +17,23 @@ class FileVectorStore implements VectorStore
 
     public function save(array $vectors): void
     {
-        Storage::put($this->path, json_encode($vectors, JSON_PRETTY_PRINT));
+        $existingVectors = [];
+
+        if (Storage::exists($this->path)) {
+            $existingVectors = json_decode(Storage::get($this->path), true) ?? [];
+        }
+
+        $newSources = array_unique(array_column($vectors, 'source'));
+
+        // Filter: Buang vektor lama yang source-nya ada di daftar update baru
+        $existingVectors = array_filter($existingVectors, function ($item) use ($newSources) {
+            return !in_array($item['source'], $newSources);
+        });
+
+        // Gabungkan
+        $finalVectors = array_merge($existingVectors, $vectors);
+
+        Storage::put($this->path, json_encode($finalVectors, JSON_PRETTY_PRINT));
     }
 
     public function search(array $queryVector, int $limit = 3): array
@@ -36,39 +53,12 @@ class FileVectorStore implements VectorStore
             $similarities[] = [
                 'content' => $item['content'],
                 'source' => $item['source'],
-                'similarity' => $this->cosineSimilarity($queryVector, $item['embedding']),
+                'similarity' => VectorHelper::cosineSimilarity($queryVector, $item['embedding']),
             ];
         }
 
         usort($similarities, fn($a, $b) => $b['similarity'] <=> $a['similarity']);
 
         return array_slice($similarities, 0, $limit);
-    }
-
-    private function cosineSimilarity(array $vecA, array $vecB): float
-    {
-        $dotProduct = 0;
-        $magA = 0;
-        $magB = 0;
-        $count = count($vecA);
-
-        if ($count === 0 || $count !== count($vecB)) {
-            return 0;
-        }
-
-        for ($i = 0; $i < $count; $i++) {
-            $dotProduct += $vecA[$i] * $vecB[$i];
-            $magA += $vecA[$i] * $vecA[$i];
-            $magB += $vecB[$i] * $vecB[$i];
-        }
-
-        $magA = sqrt($magA);
-        $magB = sqrt($magB);
-
-        if ($magA == 0 || $magB == 0) {
-            return 0;
-        }
-
-        return $dotProduct / ($magA * $magB);
     }
 }

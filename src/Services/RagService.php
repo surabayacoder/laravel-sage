@@ -2,18 +2,20 @@
 
 namespace Surabayacoder\Sage\Services;
 
-use Gemini;
+use Gemini\Contracts\ClientContract;
 use Surabayacoder\Sage\Contracts\VectorStore;
 
 class RagService
 {
+    protected ClientContract $client;
     protected VectorStore $vectorStore;
     protected array $config;
 
-    public function __construct(VectorStore $vectorStore, array $config)
+    public function __construct(VectorStore $vectorStore, ClientContract $client, array $config)
     {
         $this->config = $config;
         $this->vectorStore = $vectorStore;
+        $this->client = $client;
     }
 
     public function ask(string $question): array
@@ -22,11 +24,7 @@ class RagService
 
         $chatModel = $this->config['models']['chat'];
 
-        $apiKey = $this->config['api_key'];
-
-        $client = Gemini::client($apiKey);
-
-        $questionEmbedding = $client->embeddingModel($embeddingModel)
+        $questionEmbedding = $this->client->embeddingModel($embeddingModel)
             ->embedContent($question)
             ->embedding
             ->values;
@@ -44,12 +42,16 @@ class RagService
 
         $sources = array_unique(array_column($contexts, 'source'));
 
-        $prompt = "Jawab pertanyaan berikut hanya berdasarkan konteks yang diberikan.\n\n" .
-                  "Konteks:\n{$contextText}\n\n" .
-                  "Pertanyaan: {$question}\n\n" .
-                  "Jawaban:";
+        $promptTemplate = $this->config['prompts']['answer'] ??
+            "Jawab pertanyaan berikut hanya berdasarkan konteks yang diberikan.\n\nKonteks:\n{context}\n\nPertanyaan: {question}\n\nJawaban:";
 
-        $answer = $client->generativeModel($chatModel)
+        $prompt = str_replace(
+            ['{context}', '{question}'],
+            [$contextText, $question],
+            $promptTemplate
+        );
+
+        $answer = $this->client->generativeModel($chatModel)
             ->generateContent($prompt)
             ->text();
 
