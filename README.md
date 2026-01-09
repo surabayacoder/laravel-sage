@@ -94,6 +94,22 @@ Route::get('/ask', function () {
 });
 ```
 
+### 3. Multi-turn Chat (Chat History)
+
+Untuk membuat percakapan berkelanjutan (AI mengingat konteks pertanyaan sebelumnya), tambahkan `session_id` sebagai argumen kedua pada method `ask`.
+
+```php
+// User bertanya
+$response1 = Sage::ask("Siapa penemu lampu?", "session-user-1");
+// AI: Thomas Alva Edison...
+
+// User bertanya lagi (Referensial)
+$response2 = Sage::ask("Kapan dia lahir?", "session-user-1");
+// AI: Thomas Alva Edison lahir pada tahun 1847...
+```
+
+Pastikan Anda telah menjalankan migrasi `sage_chat_histories` untuk menggunakan fitur ini.
+
 Method `ask()` akan mengembalikan sebuah array:
 
 -   `answer`: Jawaban yang dihasilkan oleh AI.

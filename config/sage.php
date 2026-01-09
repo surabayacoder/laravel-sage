@@ -29,6 +29,7 @@ return [
     */
     'prompts' => [
         'answer' => "Jawab pertanyaan berikut hanya berdasarkan konteks yang diberikan.\n\nKonteks:\n{context}\n\nPertanyaan: {question}\n\nJawaban:",
+        'rewrite' => "Diberikan riwayat percakapan berikut, tulis ulang pertanyaan terakhir pengguna menjadi pertanyaan mandiri yang dapat dipahami tanpa melihat riwayat. JANGAN menjawab pertanyaan tersebut, cukup tulis ulang saja. Jika tidak perlu ditulis ulang, kembalikan pertanyaan aslinya.\n\nRiwayat:\n{history}\nPengguna: {question}\n\nPertanyaan yang Ditulis Ulang:",
     ],
 
     /*

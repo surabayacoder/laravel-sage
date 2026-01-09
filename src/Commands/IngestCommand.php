@@ -22,11 +22,13 @@ class IngestCommand extends Command
 
         $sourcePath = config('sage.ingestion.source_path');
 
+        $disk = config('sage.ingestion.disk', 'local');
+
         $embeddingModel = config('sage.models.embedding');
 
         $apiKey = config('sage.api_key');
 
-        $files = Storage::disk('public')->files($sourcePath);
+        $files = Storage::disk($disk)->files($sourcePath);
 
         $allVectors = [];
 
@@ -44,13 +46,13 @@ class IngestCommand extends Command
             $text = '';
 
             if ($extension === 'pdf') {
-                $filePath = Storage::disk('public')->path($file);
+                $filePath = Storage::disk($disk)->path($file);
 
                 $text = Pdf::getText($filePath);
             } elseif ($extension === 'md') {
                 $converter = new CommonMarkConverter();
 
-                $fileContent = Storage::disk('public')->get($file);
+                $fileContent = Storage::disk($disk)->get($file);
 
                 $html = $converter->convert($fileContent);
 

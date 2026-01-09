@@ -86,9 +86,15 @@ class SageServiceProvider extends ServiceProvider
             default => null, // Jangan publish apa-apa jika drivernya 'file' atau tidak didukung
         };
 
+        // Publish Migrasi Riwayat Obrolan (Selalu Dibutuhkan)
+        $this->publishes([
+            __DIR__.'/../database/migrations/create_sage_chat_histories_table.php.stub' => database_path('migrations/'.date('Y_m_d_His', time() + 1).'_create_sage_chat_histories_table.php'),
+        ], 'sage-migrations');
+
         if ($migrationStub) {
             $this->publishes([
                 __DIR__.'/../database/migrations/'.$migrationStub => database_path('migrations/'.$timestamp.'_create_sage_embeddings_table.php'),
+                __DIR__.'/../database/migrations/create_sage_chat_histories_table.php.stub' => database_path('migrations/'.date('Y_m_d_His', time() + 1).'_create_sage_chat_histories_table.php'),
             ], 'sage-migrations');
         }
     }
